@@ -5,11 +5,11 @@ from .models import User
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
-    auth_token = serializers.SerializerMethodField()
+    token = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'auth_token', 'username', 'password', 'first_name', 'last_name', 'self_description', 'avatar', 'registered_date')
+        fields = ('id', 'token', 'username', 'password', 'first_name', 'last_name', 'job_title', 'self_description', 'avatar', 'registered_date')
         extra_kwargs = {
             'avatar': {'read_only': True},
             'password': {'write_only': True},
@@ -27,18 +27,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return token.key
 
 
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'auth_token', 'username', 'first_name', 'last_name', 'self_description', 'avatar', 'registered_date')
-        extra_kwargs = {
-            'username' : {'read_only': True},
-            'avatar': {'read_only': True},
-            'password': {'write_only': True},
-        }
-
 
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'self_description',)
+        fields = ('username', 'first_name', 'last_name', 'job_title', 'self_description',)
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name', 'last_name', 'job_title', 'self_description', 'avatar', 'registered_date')
+        extra_kwargs = {
+            'username' : {'read_only': True},
+            'avatar': {'read_only': True},
+        }

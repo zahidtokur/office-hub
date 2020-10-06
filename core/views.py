@@ -14,7 +14,7 @@ class Create(generics.CreateAPIView):
 
 class Update(generics.GenericAPIView, UpdateModelMixin):
     queryset = User.objects.all()
-    serializer_class = serializers.UserCreateSerializer
+    serializer_class = serializers.UserUpdateSerializer
     permission_classes = (custom_permissions.IsOwner,)
 
     def put(self, request, *args, **kwargs):
