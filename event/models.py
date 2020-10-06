@@ -4,6 +4,10 @@ from django.db import models
 from invitation.models import Invitation
 # Create your models here.
 
+class DateValidationError(Exception):
+    """Raised when start_date of Event object is greater than end_date """
+    pass
+
 
 class EventQueryset(models.query.QuerySet):
     def created(self, user):
@@ -33,3 +37,8 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.start_date > self.end_date:
+            raise DateValidationError('start_date cannot be greater than end_date')
+        super(Event, self).save(*args, **kwargs)

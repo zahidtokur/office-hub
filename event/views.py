@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.mixins import CreateModelMixin
 from . import permissions as custom_permissions
 from . import serializers
-from .models import Event
+from .models import Event, DateValidationError
 from core.models import User
 
 # Create your views here.
@@ -20,7 +20,12 @@ class Create(generics.GenericAPIView, CreateModelMixin):
         self.check_object_permissions(self.request, user)
         event = Event(**data)
         event.created_by = user
-        event.save()
+
+        try:
+            event.save()
+        except DateValidationError as e:
+            return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
+
         response_data = serializers.EventCreateSerializer(event).data
         return Response(data=response_data, status=status.HTTP_201_CREATED)
 
