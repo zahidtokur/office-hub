@@ -29,6 +29,7 @@ class User(AbstractBaseUser):
     last_name = models.CharField(max_length = 30)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
+    job_title = models.CharField(max_length=255, null=True, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     registered_date = models.DateTimeField(auto_now_add=True)
 
