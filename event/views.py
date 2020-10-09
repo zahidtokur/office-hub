@@ -1,6 +1,7 @@
 from rest_framework import permissions, generics, views, status
 from rest_framework.response import Response
 from rest_framework.mixins import CreateModelMixin
+from django.core.exceptions import ObjectDoesNotExist
 from . import permissions as custom_permissions
 from . import serializers
 from .models import Event, DateValidationError
@@ -14,20 +15,38 @@ class Create(generics.GenericAPIView, CreateModelMixin):
     permission_classes = (custom_permissions.IsOwner,)
     
     def post(self, request, *args, **kwargs):
-        data = request.data.dict()
-        user_id = data.pop('created_by')
-        user = User.objects.get(id=user_id)
-        self.check_object_permissions(self.request, user)
-        event = Event(**data)
-        event.created_by = user
-
         try:
+            data = request.data.dict()
+            user_id = data.pop('created_by')
+            user = User.objects.get(id=user_id)
+            self.check_object_permissions(self.request, user)
+            event = Event(**data)
+            event.created_by = user
             event.save()
-        except DateValidationError as e:
-            return Response(data={'error': e.__str__()}, status=status.HTTP_400_BAD_REQUEST)
+            response_data = serializers.EventCreateSerializer(event).data
+            response_status = status.HTTP_200_OK
 
-        response_data = serializers.EventCreateSerializer(event).data
-        return Response(data=response_data, status=status.HTTP_201_CREATED)
+        except AttributeError: # Raised when no fields are given in the request
+            response_data = {'detail': 'Missing multiple fields.'}
+            response_status = status.HTTP_400_BAD_REQUEST
+
+        except KeyError as ke: # Raised when one field is missing in the request
+            response_data = {'detail' : 'Missing field.', 'missing': ke.__str__().strip("'")}
+            response_status = status.HTTP_400_BAD_REQUEST
+            
+        except ValueError as ve: # Raised when field's type doesn't match given value
+            response_data = {'detail' : 'Incorrect field or fields.'}
+            response_status = status.HTTP_400_BAD_REQUEST
+
+        except ObjectDoesNotExist as oe: # Raised when User object cannot be found
+            response_data = {'detail' : 'User not found.'}
+            response_status = status.HTTP_400_BAD_REQUEST
+            
+        except DateValidationError as de: # Raised when start_date field is greater than end_date field
+            response_data = {'detail' : de.__str__()}
+            response_status = status.HTTP_400_BAD_REQUEST
+        
+        return Response(data=response_data, status=response_status)
 
 
 
