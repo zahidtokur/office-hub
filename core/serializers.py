@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from .models import User
+from .models import User, UserSkill
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -42,3 +42,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             'username' : {'read_only': True},
             'avatar': {'read_only': True},
         }
+
+
+class SkillCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserSkill
+        fields = ('user', 'skill')

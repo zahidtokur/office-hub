@@ -4,7 +4,7 @@ from rest_framework.mixins import UpdateModelMixin
 from . import permissions as custom_permissions
 from rest_framework.response import Response
 from . import serializers
-from .models import User
+from .models import User, UserSkill
 
 
 class Create(generics.CreateAPIView):
@@ -39,3 +39,16 @@ class List(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = serializers.UserListSerializer
     permission_classes = (permissions.AllowAny,)
+
+
+class CreateSkill(views.APIView):
+    serializer_class = serializers.SkillCreateSerializer
+    permission_classes = (custom_permissions.IsOwner,)
+
+    def post(self, request, pk):
+        user = User.objects.get(id=pk)
+        self.check_object_permissions(self.request, user)
+        user_skill = UserSkill(user=user, skill=request.data['skill'])
+        user_skill.save()
+        response_data = self.serializer_class(user_skill).data
+        return Response(data=response_data, status=status.HTTP_200_OK)

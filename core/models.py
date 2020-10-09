@@ -51,6 +51,17 @@ class User(AbstractBaseUser):
     def has_module_perms(self, app_label):
         return True
 
+class UserSkill(models.Model):
+    user = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='skills')
+    skill = models.CharField(max_length=30)
+
+    class Meta:
+        unique_together = ('user', 'skill')
+
+    def save(self, *args, **kwargs):
+        self.skill = self.skill.upper()
+        super(UserSkill, self).save(*args, **kwargs)
+
 
 from django.conf import settings
 from django.db.models.signals import post_save
