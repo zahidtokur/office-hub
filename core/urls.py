@@ -1,13 +1,13 @@
 from django.urls import include, path
-from .views import Create, Update, UploadAvatar, List, CreateSkill, DeleteSkill
+from .views import UserCreate, UserUpdate, UserUpdateAvatar, UserList, SkillCreate, SkillDelete
 from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
-    path('new/', Create.as_view()),
+    path('new/', UserCreate.as_view()),
     path('login/', obtain_auth_token),
-    path('all/', List.as_view()),
-    path('<int:pk>/update/', Update.as_view()),
-    path('<int:pk>/upload-avatar/', UploadAvatar.as_view()),
-    path('<int:pk>/skills/new/', CreateSkill.as_view()),
-    path('<int:pk>/skills/<int:s_pk>/delete/', DeleteSkill.as_view()),
+    path('all/', UserList.as_view()),
+    path('<int:pk>/update/', UserUpdate.as_view()),
+    path('<int:pk>/upload-avatar/', UserUpdateAvatar.as_view()),
+    path('<int:pk>/skills/new/', SkillCreate.as_view()),
+    path('<int:pk>/skills/<int:s_pk>/delete/', SkillDelete.as_view()),
 ]

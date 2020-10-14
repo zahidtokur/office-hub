@@ -53,13 +53,12 @@ class Create(generics.GenericAPIView, CreateModelMixin):
 class InvitedToList(views.APIView):
     queryset = Event.objects.all()
     serializer_class = serializers.EventCreateSerializer
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (custom_permissions.IsOwner,)
 
-    def post(self, request):
+    def post(self, request, user_id):
         ## Check if user and token matches
-        user = User.objects.get(username=request.data['username'])
-        if str(user.auth_token) != request.data['token']:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
 
         ## Get events created by user
         created_events = self.queryset.created(user=user)
@@ -70,9 +69,9 @@ class InvitedToList(views.APIView):
         ## Merge querysets and filter by day
         filtered_by_day = (created_events | invited_events).future_events(within_days = 120)
 
-        data = serializers.EventCreateSerializer(filtered_by_day, many=True).data
+        response_data = serializers.EventCreateSerializer(filtered_by_day, many=True).data
 
-        return Response(data=data, status=status.HTTP_200_OK)
+        return Response(data=response_data, status=status.HTTP_200_OK)
 
 
 
@@ -81,16 +80,15 @@ class CreatedList(generics.ListAPIView):
     serializer_class = serializers.EventCreateSerializer
     permission_classes = (permissions.AllowAny, )
 
-    def post(self, request):
+    def get(self, request, user_id):
         ## Check if user and token matches
-        user = User.objects.get(username=request.data['username'])
-        if str(user.auth_token) != request.data['token']:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
 
         ## Get events created by user
         created_events = self.queryset.created(user=user)
 
-        data = serializers.EventCreateSerializer(created_events, many=True).data
+        response_data = serializers.EventCreateSerializer(created_events, many=True).data
 
-        return Response(data=data, status=status.HTTP_200_OK)
+        return Response(data=response_data, status=status.HTTP_200_OK)
         

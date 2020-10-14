@@ -7,12 +7,12 @@ from . import serializers
 from .models import User, UserSkill
 
 
-class Create(generics.CreateAPIView):
+class UserCreate(generics.CreateAPIView):
     serializer_class = serializers.UserCreateSerializer
     permission_classes = (permissions.AllowAny,)
 
 
-class Update(generics.GenericAPIView, UpdateModelMixin):
+class UserUpdate(generics.GenericAPIView, UpdateModelMixin):
     queryset = User.objects.all()
     serializer_class = serializers.UserUpdateSerializer
     permission_classes = (custom_permissions.IsOwner,)
@@ -21,32 +21,32 @@ class Update(generics.GenericAPIView, UpdateModelMixin):
         return self.partial_update(request, *args, **kwargs)
 
 
-class UploadAvatar(views.APIView):
+class UserUpdateAvatar(views.APIView):
     parser_classes = [FileUploadParser]
     permission_classes = (custom_permissions.IsOwner,)
     queryset = User.objects.all()
 
-    def put(self, request, pk, format=None):
-        user = self.queryset.get(id=pk)
+    def put(self, request, id, format=None):
+        user = self.queryset.get(id=id)
         self.check_object_permissions(self.request, user)
         file_obj = request.data['file']
         user.avatar = file_obj
         user.save()
-        return Response(status=204)
+        return Response(status=200)
 
 
-class List(generics.ListAPIView):
+class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = serializers.UserListSerializer
     permission_classes = (permissions.AllowAny,)
 
 
-class CreateSkill(views.APIView):
+class SkillCreate(views.APIView):
     serializer_class = serializers.SkillCreateSerializer
     permission_classes = (custom_permissions.IsOwner,)
 
-    def post(self, request, pk):
-        user = User.objects.get(id=pk)
+    def post(self, request, id):
+        user = User.objects.get(id=id)
         self.check_object_permissions(self.request, user)
         user_skill = UserSkill(user=user, skill=request.data['skill'])
         user_skill.save()
@@ -54,14 +54,14 @@ class CreateSkill(views.APIView):
         return Response(data=response_data, status=status.HTTP_200_OK)
 
 
-class DeleteSkill(views.APIView):
+class SkillDelete(views.APIView):
     queryset = UserSkill.objects.all()
     serializer_class = serializers.SkillCreateSerializer
     permission_classes = (custom_permissions.IsOwner,)
 
-    def delete(self, request, pk, s_pk):
-        user = User.objects.get(id=pk)
-        user_skill = self.queryset.get(id=s_pk, user_id=pk)
+    def delete(self, request, user_id, skill_id):
+        user = User.objects.get(id=user_id)
+        user_skill = self.queryset.get(id=skill_id, user_id=user_id)
         self.check_object_permissions(self.request, user)
         user_skill.delete()
-        return Response(status=status.HTTP_200_OK)
+        return Response(data={'detail': 'Object deleted.'}, status=status.HTTP_200_OK)
