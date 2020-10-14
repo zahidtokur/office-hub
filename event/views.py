@@ -55,7 +55,14 @@ class InvitedToList(views.APIView):
     serializer_class = serializers.EventCreateSerializer
     permission_classes = (custom_permissions.IsOwner,)
 
-    def post(self, request, user_id):
+    def get(self, request, user_id):
+        try:
+            days = int(request.data['days'])
+        except KeyError: # Raised when 'days' value is not provided
+            days = 120
+        except ValueError: # Raised when 'days' value is not a number
+            return Response(data={'detail': 'days must be an integer.'}, status=status.HTTP_400_BAD_REQUEST)
+
         ## Check if user and token matches
         user = User.objects.get(id=user_id)
         self.check_object_permissions(request, user)
@@ -67,7 +74,7 @@ class InvitedToList(views.APIView):
         invited_events = self.queryset.invited_to(user=user)
 
         ## Merge querysets and filter by day
-        filtered_by_day = (created_events | invited_events).future_events(within_days = 120)
+        filtered_by_day = (created_events | invited_events).future_events(within_days = days)
 
         response_data = serializers.EventCreateSerializer(filtered_by_day, many=True).data
 
