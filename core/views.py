@@ -52,3 +52,16 @@ class CreateSkill(views.APIView):
         user_skill.save()
         response_data = self.serializer_class(user_skill).data
         return Response(data=response_data, status=status.HTTP_200_OK)
+
+
+class DeleteSkill(views.APIView):
+    queryset = UserSkill.objects.all()
+    serializer_class = serializers.SkillCreateSerializer
+    permission_classes = (custom_permissions.IsOwner,)
+
+    def delete(self, request, pk, s_pk):
+        user = User.objects.get(id=pk)
+        user_skill = self.queryset.get(id=s_pk, user_id=pk)
+        self.check_object_permissions(self.request, user)
+        user_skill.delete()
+        return Response(status=status.HTTP_200_OK)
