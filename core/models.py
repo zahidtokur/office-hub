@@ -1,6 +1,9 @@
+import os
 from django.db import models
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 
+def get_upload_path(instance, filename):
+    return os.path.join("avatars/", "user_" + str(instance.id) + "/", filename)
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, username, password=None):
@@ -30,7 +33,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     job_title = models.CharField(max_length=255, null=True, blank=True)
-    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar = models.ImageField(upload_to=get_upload_path, null=True, blank=True)
     registered_date = models.DateTimeField(auto_now_add=True)
 
     objects = CustomUserManager()

@@ -1,6 +1,8 @@
 from rest_framework import permissions, generics, views, status
 from rest_framework.parsers import FileUploadParser
 from rest_framework.mixins import UpdateModelMixin
+from PIL import Image
+from django.core.files.storage import default_storage
 from . import permissions as custom_permissions
 from rest_framework.response import Response
 from . import serializers
@@ -27,12 +29,23 @@ class UserUpdateAvatar(views.APIView):
     queryset = User.objects.all()
 
     def put(self, request, id, format=None):
-        user = self.queryset.get(id=id)
-        self.check_object_permissions(self.request, user)
-        file_obj = request.data['file']
-        user.avatar = file_obj
-        user.save()
-        return Response(status=200)
+        try:
+            user = self.queryset.get(id=id)
+            self.check_object_permissions(self.request, user)
+
+            file_obj = request.data['file']
+            Image.open(file_obj)
+
+            if user.avatar.name:
+                default_storage.delete(user.avatar.path)
+
+            user.avatar = file_obj
+            user.save()
+            response_data = serializers.UserUpdateSerializer(user).data
+            return Response(data=response_data, status=status.HTTP_200_OK)
+
+        except IOError:
+            return Response(data={'detail': 'Invalid file type.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserList(generics.ListAPIView):
