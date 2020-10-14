@@ -47,4 +47,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 class SkillCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSkill
-        fields = ('user', 'skill')
+        fields = ('id', 'user', 'skill')

@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from rest_framework import permissions, generics, views, status
 from rest_framework.parsers import FileUploadParser
 from rest_framework.mixins import UpdateModelMixin
@@ -59,12 +60,17 @@ class SkillCreate(views.APIView):
     permission_classes = (custom_permissions.IsOwner,)
 
     def post(self, request, id):
-        user = User.objects.get(id=id)
-        self.check_object_permissions(self.request, user)
-        user_skill = UserSkill(user=user, skill=request.data['skill'])
-        user_skill.save()
-        response_data = self.serializer_class(user_skill).data
-        return Response(data=response_data, status=status.HTTP_200_OK)
+        try:
+            user = User.objects.get(id=id)
+            self.check_object_permissions(self.request, user)
+            user_skill = UserSkill(user=user, skill=request.data['skill'])
+            user_skill.save()
+            response_data = self.serializer_class(user_skill).data
+            return Response(data=response_data, status=status.HTTP_200_OK)
+        except KeyError:
+            return Response(data={'detail': 'Missing field.', 'missing': 'skill'}, status=status.HTTP_400_BAD_REQUEST)
+        except IntegrityError:
+            return Response(data={'detail': 'This record has been created before.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SkillDelete(views.APIView):
