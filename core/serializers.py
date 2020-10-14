@@ -31,7 +31,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'job_title', 'self_description',)
+        fields = ('username', 'first_name', 'last_name', 'job_title', 'self_description', 'skills')
+        depth = 1
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

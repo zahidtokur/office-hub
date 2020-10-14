@@ -49,6 +49,13 @@ class UserUpdateAvatar(views.APIView):
             return Response(data={'detail': 'Invalid file type.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = serializers.UserListSerializer
+    permission_classes = (permissions.AllowAny,)
+    lookup_field = 'id'
+
+
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = serializers.UserListSerializer
