@@ -49,6 +49,36 @@ class Create(generics.GenericAPIView, CreateModelMixin):
         return Response(data=response_data, status=response_status)
 
 
+class Update(views.APIView):
+    queryset = Event.objects.all()
+    serializer_class = serializers.EventCreateSerializer
+    permission_classes = (custom_permissions.TokenMatches,)
+    
+    def put(self, request, id):
+        event = self.queryset.get(id=id)
+        self.check_object_permissions(self.request, event.created_by)
+        
+        data = request.data.dict()
+
+        if "title" in data:
+            event.title = data['title']
+
+        if "description" in data:
+            event.description = data['description']
+
+        if "location" in data:
+            event.location = data['location']
+
+        if "start_date" in data:
+            event.start_date = data['start_date']
+
+        if "end_date" in data:
+            event.end_date = data['end_date']
+
+        event.save()
+        response_data = self.serializer_class(event).data
+        return Response(response_data, 200)
+
 
 class InvitedToList(views.APIView):
     queryset = Event.objects.all()
