@@ -4,7 +4,7 @@ from rest_framework.mixins import CreateModelMixin
 from django.core.exceptions import ObjectDoesNotExist
 from . import permissions as custom_permissions
 from . import serializers
-from .models import Event, Invitation, DateValidationError
+from .models import Event, Invitation, Comment, DateValidationError
 from core.models import User
 
 # Create your views here.
@@ -230,3 +230,75 @@ class PendingInvitationList(generics.ListAPIView):
             response_status = 400
 
         return Response(response_data, response_status)
+
+
+class CommentCreate(views.APIView):
+    serializer_class = serializers.CommentSerializer
+    permission_classes = (custom_permissions.TokenMatches,)
+
+    def post(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+
+        data = request.data.dict()
+        user_id = data.pop('created_by')
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
+
+        comment = Comment(**data)
+        comment.event = event
+        comment.created_by = user
+        comment.save()
+
+        response_data = self.serializer_class(comment).data
+
+        return Response(response_data, 200)
+
+
+class CommentDetail(views.APIView):
+    serializer_class = serializers.CommentSerializer
+    permission_classes = (custom_permissions.TokenMatches,)
+
+    def get(self, request, event_id, comment_id):
+        event = Event.objects.get(id=event_id)
+        comment = Comment.objects.get(id=comment_id)
+        token = request.headers['Authorization']
+        user = User.objects.get(auth_token=token)
+        self.check_object_permissions(request, user)
+
+        if event.invitations.filter(receiver=user) == 0:
+            return Response(400)
+
+        response_data = self.serializer_class(comment).data
+
+        return Response(response_data, 200)
+
+
+class EventCommentList(generics.ListAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    permission_classes = (custom_permissions.TokenMatches,)
+
+    def get(self, request, event_id):
+        event = Event.objects.get(id=event_id)
+        token = request.headers['Authorization']
+        user = User.objects.get(auth_token=token)
+        self.check_object_permissions(request, user)
+
+        if event.invitations.filter(receiver=user) == 0:
+            return Response(400)
+
+        response_data = self.serializer_class(event.comments, many=True).data
+
+        return Response(response_data, 200)
+
+
+class CommentDelete(views.APIView):
+    queryset = Comment.objects.all()
+    serializer_class = serializers.CommentSerializer
+    permission_classes = (custom_permissions.TokenMatches,)
+
+    def delete(self, request, event_id, comment_id):
+        comment = self.queryset.get(id=comment_id)
+        self.check_object_permissions(self.request, comment.created_by)
+        comment.delete()
+        return Response(data={'detail': 'Object deleted.'}, status=200)

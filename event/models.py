@@ -48,3 +48,11 @@ class Invitation(models.Model):
     receiver = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='invitations')
     event = models.ForeignKey('event.Event', on_delete=models.CASCADE, related_name='invitations')
     will_attend = models.BooleanField(blank=True, null=True)
+
+
+
+class Comment(models.Model):
+    created_by = models.ForeignKey('core.User', on_delete=models.CASCADE, related_name='comments')
+    event = models.ForeignKey('event.Event', on_delete=models.CASCADE, related_name='comments')
+    message = models.TextField(verbose_name='message')
+    created_at = models.DateTimeField(auto_now_add=True)
