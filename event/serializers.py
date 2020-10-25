@@ -19,3 +19,9 @@ class InvitationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
         fields = ('id', 'event', 'will_attend')
+
+
+class InvitationListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invitation
+        fields = ('id', 'receiver', 'event', 'will_attend')

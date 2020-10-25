@@ -138,3 +138,65 @@ class InvitationUpdate(views.APIView):
         response_data = self.serializer_class(invitation).data
 
         return Response(data=response_data, status=200)
+
+
+
+class InvitationList(generics.ListAPIView):
+    queryset = Invitation.objects.all()
+    serializer_class = serializers.InvitationListSerializer
+    permissions_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        # Get user
+        try:
+            token = request.headers['Authorization']
+            user = User.objects.get(auth_token=token)
+            invitations = self.queryset.filter(receiver=user)
+            response_data = self.serializer_class(invitations, many=True).data
+            response_status = 200
+        except KeyError:
+            response_data = {'detail': 'Authentication credentials were not provided.'}
+            response_status = 400
+        
+        return Response(response_data, response_status)
+
+
+class RespondedInvitationList(generics.ListAPIView):
+    queryset = Invitation.objects.all()
+    serializer_class = serializers.InvitationListSerializer
+    permissions_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        # Get user
+        try:
+            token = request.headers['Authorization']
+            user = User.objects.get(auth_token=token)
+            invitations = self.queryset.filter(receiver=user, will_attend__isnull=False)
+            response_data = self.serializer_class(invitations, many=True).data
+            response_status = 200
+        except KeyError:
+            response_data = {'detail': 'Authentication credentials were not provided.'}
+            response_status = 400
+
+        return Response(response_data, response_status)
+
+
+
+class PendingInvitationList(generics.ListAPIView):
+    queryset = Invitation.objects.all()
+    serializer_class = serializers.InvitationListSerializer
+    permissions_classes = (permissions.AllowAny,)
+
+    def get(self, request):
+        # Get user
+        try:
+            token = request.headers['Authorization']
+            user = User.objects.get(auth_token=token)
+            invitations = self.queryset.filter(receiver=user, will_attend__isnull=True)
+            response_data = self.serializer_class(invitations, many=True).data
+            response_status = 200
+        except KeyError:
+            response_data = {'detail': 'Authentication credentials were not provided.'}
+            response_status = 400
+
+        return Response(response_data, response_status)
