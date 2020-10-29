@@ -4,7 +4,7 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.mixins import UpdateModelMixin
 from PIL import Image
 from django.core.files.storage import default_storage
-from . import permissions as custom_permissions
+from .permissions import TokenMatches, IsAdmin
 from rest_framework.response import Response
 from . import serializers
 from .models import User, UserSkill
@@ -18,7 +18,8 @@ class UserRegister(generics.CreateAPIView):
 class UserUpdate(generics.GenericAPIView, UpdateModelMixin):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
+    lookup_field = 'id'
 
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
@@ -26,7 +27,7 @@ class UserUpdate(generics.GenericAPIView, UpdateModelMixin):
 
 class UpdateAvatar(views.APIView):
     parser_classes = [FileUploadParser]
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     queryset = User.objects.all()
 
     def put(self, request, id, format=None):
@@ -64,7 +65,7 @@ class UserList(generics.ListAPIView):
 
 class SkillCreate(views.APIView):
     serializer_class = serializers.SkillSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def post(self, request, id):
         try:
@@ -83,11 +84,10 @@ class SkillCreate(views.APIView):
 class SkillDelete(views.APIView):
     queryset = UserSkill.objects.all()
     serializer_class = serializers.SkillSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
-    def delete(self, request, user_id, skill_id):
-        user = User.objects.get(id=user_id)
-        user_skill = self.queryset.get(id=skill_id, user_id=user_id)
-        self.check_object_permissions(self.request, user)
-        user_skill.delete()
+    def delete(self, request, skill_id):
+        skill = self.queryset.get(id=skill_id)
+        self.check_object_permissions(self.request, skill.user)
+        skill.delete()
         return Response(data={'detail': 'Object deleted.'}, status=200)

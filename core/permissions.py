@@ -1,5 +1,6 @@
 from rest_framework import permissions
-
+from django.core.exceptions import ObjectDoesNotExist
+from .models import User
 
 
 class TokenMatches(permissions.BasePermission):
@@ -10,3 +11,16 @@ class TokenMatches(permissions.BasePermission):
             return False
 
         return obj.auth_token.__str__() == token
+
+
+class IsAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        try:
+            token = request.headers['Authorization']
+            user = User.objects.get(auth_token=token)
+        except KeyError:
+            return False
+        except ObjectDoesNotExist:
+            return False
+
+        return user.is_admin

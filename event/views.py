@@ -2,7 +2,7 @@ from rest_framework import permissions, generics, views
 from rest_framework.response import Response
 from rest_framework.mixins import CreateModelMixin
 from django.core.exceptions import ObjectDoesNotExist
-from . import permissions as custom_permissions
+from core.permissions import TokenMatches
 from . import serializers
 from .models import Event, Invitation, Comment, DateValidationError
 from core.models import User
@@ -12,7 +12,7 @@ from core.models import User
 
 class EventCreate(generics.GenericAPIView, CreateModelMixin):
     serializer_class = serializers.EventSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     
     def post(self, request, *args, **kwargs):
         try:
@@ -52,7 +52,7 @@ class EventCreate(generics.GenericAPIView, CreateModelMixin):
 class EventUpdate(views.APIView):
     queryset = Event.objects.all()
     serializer_class = serializers.EventSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     
     def put(self, request, id):
         event = self.queryset.get(id=id)
@@ -80,10 +80,24 @@ class EventUpdate(views.APIView):
         return Response(response_data, 200)
 
 
+
+class EventDelete(views.APIView):
+    queryset = Event.objects.all()
+    serializer_class = serializers.EventSerializer
+    permission_classes = (TokenMatches,)
+
+    def delete(self, request, id):
+        event = self.queryset.get(id=id)
+        self.check_object_permissions(self.request, event.created_by)
+        event.delete()
+        return Response(data={'detail': 'Object deleted.'}, status=200)
+
+
+
 class InvitedEventsList(views.APIView):
     queryset = Event.objects.all()
     serializer_class = serializers.EventSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def get(self, request, user_id):
         try:
@@ -134,7 +148,7 @@ class CreatedEventsList(generics.ListAPIView):
 class InvitationCreate(views.APIView):
     queryset = Invitation.objects.all()
     serializer_class = serializers.InvitationSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def post(self, request, event_id):
         ## Check if user and token matches
@@ -155,7 +169,7 @@ class InvitationCreate(views.APIView):
 class InvitationUpdate(views.APIView):
     queryset = Invitation.objects.all()
     serializer_class = serializers.InvitationSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def put(self, request, invitation_id):
         ## Check if user and token matches
@@ -174,19 +188,16 @@ class InvitationUpdate(views.APIView):
 class InvitationList(generics.ListAPIView):
     queryset = Invitation.objects.all()
     serializer_class = serializers.InvitationSerializer
-    permissions_classes = (permissions.AllowAny,)
+    permissions_classes = (TokenMatches,)
 
-    def get(self, request):
+    def get(self, request, user_id):
         # Get user
-        try:
-            token = request.headers['Authorization']
-            user = User.objects.get(auth_token=token)
-            invitations = self.queryset.filter(receiver=user)
-            response_data = self.serializer_class(invitations, many=True).data
-            response_status = 200
-        except KeyError:
-            response_data = {'detail': 'Authentication credentials were not provided.'}
-            response_status = 400
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
+
+        invitations = self.queryset.filter(receiver=user)
+        response_data = self.serializer_class(invitations, many=True).data
+        response_status = 200
         
         return Response(response_data, response_status)
 
@@ -196,17 +207,14 @@ class RespondedInvitationList(generics.ListAPIView):
     serializer_class = serializers.InvitationSerializer
     permissions_classes = (permissions.AllowAny,)
 
-    def get(self, request):
+    def get(self, request, user_id):
         # Get user
-        try:
-            token = request.headers['Authorization']
-            user = User.objects.get(auth_token=token)
-            invitations = self.queryset.filter(receiver=user, will_attend__isnull=False)
-            response_data = self.serializer_class(invitations, many=True).data
-            response_status = 200
-        except KeyError:
-            response_data = {'detail': 'Authentication credentials were not provided.'}
-            response_status = 400
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
+
+        invitations = self.queryset.filter(receiver=user, will_attend__isnull=False)
+        response_data = self.serializer_class(invitations, many=True).data
+        response_status = 200
 
         return Response(response_data, response_status)
 
@@ -217,24 +225,21 @@ class PendingInvitationList(generics.ListAPIView):
     serializer_class = serializers.InvitationSerializer
     permissions_classes = (permissions.AllowAny,)
 
-    def get(self, request):
+    def get(self, request, user_id):
         # Get user
-        try:
-            token = request.headers['Authorization']
-            user = User.objects.get(auth_token=token)
-            invitations = self.queryset.filter(receiver=user, will_attend__isnull=True)
-            response_data = self.serializer_class(invitations, many=True).data
-            response_status = 200
-        except KeyError:
-            response_data = {'detail': 'Authentication credentials were not provided.'}
-            response_status = 400
+        user = User.objects.get(id=user_id)
+        self.check_object_permissions(request, user)
+
+        invitations = self.queryset.filter(receiver=user, will_attend__isnull=True)
+        response_data = self.serializer_class(invitations, many=True).data
+        response_status = 200
 
         return Response(response_data, response_status)
 
 
 class CommentCreate(views.APIView):
     serializer_class = serializers.CommentSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def post(self, request, event_id):
         event = Event.objects.get(id=event_id)
@@ -256,7 +261,7 @@ class CommentCreate(views.APIView):
 
 class CommentDetail(views.APIView):
     serializer_class = serializers.CommentSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def get(self, request, event_id, comment_id):
         event = Event.objects.get(id=event_id)
@@ -276,7 +281,7 @@ class CommentDetail(views.APIView):
 class EventCommentList(generics.ListAPIView):
     queryset = Comment.objects.all()
     serializer_class = serializers.CommentSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def get(self, request, event_id):
         event = Event.objects.get(id=event_id)
@@ -295,7 +300,7 @@ class EventCommentList(generics.ListAPIView):
 class CommentDelete(views.APIView):
     queryset = Comment.objects.all()
     serializer_class = serializers.CommentSerializer
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
 
     def delete(self, request, event_id, comment_id):
         comment = self.queryset.get(id=comment_id)

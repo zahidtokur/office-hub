@@ -2,7 +2,7 @@ from rest_framework import permissions, generics, views
 from rest_framework.response import Response
 from rest_framework.mixins import CreateModelMixin
 from django.core.exceptions import ObjectDoesNotExist
-from . import permissions as custom_permissions
+from core.permissions import TokenMatches, IsAdmin
 from . import serializers
 from .models import Feedback
 from core.models import User
@@ -10,7 +10,7 @@ from core.models import User
 
 class FeedbackList(generics.ListAPIView):
     queryset = Feedback.objects.all()
-    permission_classes = (custom_permissions.IsAdmin,)
+    permission_classes = (IsAdmin,)
     serializer_class = serializers.FeedbackSerializer
 
     def get(self, request):
@@ -23,7 +23,7 @@ class FeedbackList(generics.ListAPIView):
 
 class FeedbackListCategory(generics.ListAPIView):
     queryset = Feedback.objects.all()
-    permission_classes = (custom_permissions.IsAdmin,)
+    permission_classes = (IsAdmin,)
     serializer_class = serializers.FeedbackSerializer
 
     def get(self, request, category):
@@ -36,7 +36,7 @@ class FeedbackListCategory(generics.ListAPIView):
 
 class FeedbackCreate(views.APIView):
     queryset = Feedback.objects.all()
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     serializer_class = serializers.FeedbackSerializer
 
     def post(self, request, *args, **kwargs):
@@ -56,21 +56,20 @@ class FeedbackCreate(views.APIView):
 
 class FeedbackDelete(views.APIView):
     queryset = Feedback.objects.all()
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     serializer_class = serializers.FeedbackSerializer
 
-    def delete(self, request, user_id, feedback_id):
-        user = User.objects.get(id=user_id)
-        user_feedback = self.queryset.get(id=feedback_id, created_by_id=user_id)
-        self.check_object_permissions(self.request, user)
-        user_feedback.delete()
+    def delete(self, request, feedback_id):
+        feedback = self.queryset.get(id=feedback_id)
+        self.check_object_permissions(self.request, feedback.created_by)
+        feedback.delete()
         return Response(data={'detail': 'Object deleted.'}, status=200)
 
 
 
 class UserFeedbackList(generics.ListAPIView):
     queryset = Feedback.objects.all()
-    permission_classes = (custom_permissions.TokenMatches,)
+    permission_classes = (TokenMatches,)
     serializer_class = serializers.FeedbackSerializer
 
     def get(self, request, user_id):
