@@ -9,7 +9,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 
-class EventCreateSerializer(serializers.ModelSerializer):
+class EventSerializer(serializers.ModelSerializer):
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -18,19 +18,7 @@ class EventCreateSerializer(serializers.ModelSerializer):
 
 
 
-class InvitationCreateSerializer(serializers.ModelSerializer):
+class InvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invitation
-        fields = ('id', 'event', 'receiver')
-
-
-class InvitationUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Invitation
-        fields = ('id', 'event', 'will_attend')
-
-
-class InvitationListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Invitation
-        fields = ('id', 'receiver', 'event', 'will_attend')
+        fields = ('id', 'event', 'receiver', 'will_attend')

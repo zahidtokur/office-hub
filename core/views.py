@@ -10,21 +10,21 @@ from . import serializers
 from .models import User, UserSkill
 
 
-class UserCreate(generics.CreateAPIView):
-    serializer_class = serializers.UserCreateSerializer
+class UserRegister(generics.CreateAPIView):
+    serializer_class = serializers.RegisterSerializer
     permission_classes = (permissions.AllowAny,)
 
 
 class UserUpdate(generics.GenericAPIView, UpdateModelMixin):
     queryset = User.objects.all()
-    serializer_class = serializers.UserUpdateSerializer
+    serializer_class = serializers.UserSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def put(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
 
-class UserUpdateAvatar(views.APIView):
+class UpdateAvatar(views.APIView):
     parser_classes = [FileUploadParser]
     permission_classes = (custom_permissions.TokenMatches,)
     queryset = User.objects.all()
@@ -42,7 +42,7 @@ class UserUpdateAvatar(views.APIView):
 
             user.avatar = file_obj
             user.save()
-            response_data = serializers.UserUpdateSerializer(user).data
+            response_data = serializers.UserSerializer(user).data
             return Response(data=response_data, status=200)
 
         except IOError:
@@ -51,19 +51,19 @@ class UserUpdateAvatar(views.APIView):
 
 class UserDetail(generics.RetrieveAPIView):
     queryset = User.objects.all()
-    serializer_class = serializers.UserListSerializer
+    serializer_class = serializers.UserSerializer
     permission_classes = (permissions.AllowAny,)
     lookup_field = 'id'
 
 
 class UserList(generics.ListAPIView):
     queryset = User.objects.all()
-    serializer_class = serializers.UserListSerializer
+    serializer_class = serializers.UserSerializer
     permission_classes = (permissions.AllowAny,)
 
 
 class SkillCreate(views.APIView):
-    serializer_class = serializers.SkillCreateSerializer
+    serializer_class = serializers.SkillSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def post(self, request, id):
@@ -82,7 +82,7 @@ class SkillCreate(views.APIView):
 
 class SkillDelete(views.APIView):
     queryset = UserSkill.objects.all()
-    serializer_class = serializers.SkillCreateSerializer
+    serializer_class = serializers.SkillSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def delete(self, request, user_id, skill_id):

@@ -10,8 +10,8 @@ from core.models import User
 # Create your views here.
 
 
-class Create(generics.GenericAPIView, CreateModelMixin):
-    serializer_class = serializers.EventCreateSerializer
+class EventCreate(generics.GenericAPIView, CreateModelMixin):
+    serializer_class = serializers.EventSerializer
     permission_classes = (custom_permissions.TokenMatches,)
     
     def post(self, request, *args, **kwargs):
@@ -23,7 +23,7 @@ class Create(generics.GenericAPIView, CreateModelMixin):
             event = Event(**data)
             event.created_by = user
             event.save()
-            response_data = serializers.EventCreateSerializer(event).data
+            response_data = serializers.EventSerializer(event).data
             response_status = 200
 
         except AttributeError: # Raised when no fields are given in the request
@@ -49,9 +49,9 @@ class Create(generics.GenericAPIView, CreateModelMixin):
         return Response(data=response_data, status=response_status)
 
 
-class Update(views.APIView):
+class EventUpdate(views.APIView):
     queryset = Event.objects.all()
-    serializer_class = serializers.EventCreateSerializer
+    serializer_class = serializers.EventSerializer
     permission_classes = (custom_permissions.TokenMatches,)
     
     def put(self, request, id):
@@ -80,9 +80,9 @@ class Update(views.APIView):
         return Response(response_data, 200)
 
 
-class InvitedToList(views.APIView):
+class InvitedEventsList(views.APIView):
     queryset = Event.objects.all()
-    serializer_class = serializers.EventCreateSerializer
+    serializer_class = serializers.EventSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def get(self, request, user_id):
@@ -112,9 +112,9 @@ class InvitedToList(views.APIView):
 
 
 
-class CreatedList(generics.ListAPIView):
+class CreatedEventsList(generics.ListAPIView):
     queryset = Event.objects.all()
-    serializer_class = serializers.EventCreateSerializer
+    serializer_class = serializers.EventSerializer
     permission_classes = (permissions.AllowAny, )
 
     def get(self, request, user_id):
@@ -133,7 +133,7 @@ class CreatedList(generics.ListAPIView):
 
 class InvitationCreate(views.APIView):
     queryset = Invitation.objects.all()
-    serializer_class = serializers.InvitationCreateSerializer
+    serializer_class = serializers.InvitationSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def post(self, request, event_id):
@@ -154,7 +154,7 @@ class InvitationCreate(views.APIView):
 
 class InvitationUpdate(views.APIView):
     queryset = Invitation.objects.all()
-    serializer_class = serializers.InvitationUpdateSerializer
+    serializer_class = serializers.InvitationSerializer
     permission_classes = (custom_permissions.TokenMatches,)
 
     def put(self, request, invitation_id):
@@ -173,7 +173,7 @@ class InvitationUpdate(views.APIView):
 
 class InvitationList(generics.ListAPIView):
     queryset = Invitation.objects.all()
-    serializer_class = serializers.InvitationListSerializer
+    serializer_class = serializers.InvitationSerializer
     permissions_classes = (permissions.AllowAny,)
 
     def get(self, request):
@@ -193,7 +193,7 @@ class InvitationList(generics.ListAPIView):
 
 class RespondedInvitationList(generics.ListAPIView):
     queryset = Invitation.objects.all()
-    serializer_class = serializers.InvitationListSerializer
+    serializer_class = serializers.InvitationSerializer
     permissions_classes = (permissions.AllowAny,)
 
     def get(self, request):
@@ -214,7 +214,7 @@ class RespondedInvitationList(generics.ListAPIView):
 
 class PendingInvitationList(generics.ListAPIView):
     queryset = Invitation.objects.all()
-    serializer_class = serializers.InvitationListSerializer
+    serializer_class = serializers.InvitationSerializer
     permissions_classes = (permissions.AllowAny,)
 
     def get(self, request):

@@ -4,7 +4,7 @@ from rest_framework.authtoken.models import Token
 from .models import User, UserSkill
 
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
     token = serializers.SerializerMethodField()
 
     class Meta:
@@ -28,24 +28,17 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 
-class UserListSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'first_name', 'last_name', 'job_title', 'self_description', 'skills')
+        fields = ('id', 'username', 'first_name', 'last_name', 'job_title', 'self_description', 'avatar', 'registered_date', 'skills')
         depth = 1
-
-
-class UserUpdateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'job_title', 'self_description', 'avatar', 'registered_date')
         extra_kwargs = {
             'username' : {'read_only': True},
-            'avatar': {'read_only': True},
         }
 
 
-class SkillCreateSerializer(serializers.ModelSerializer):
+class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSkill
         fields = ('id', 'user', 'skill')
