@@ -25,5 +25,9 @@ To install requirements, run:
 
 Then, create a django secret key [here](https://djecrety.ir/) and put it in ***secret_key.txt*** file at root directory or directly paste in project's ***settings*** file.
 
+Lastly, migrate.
+
+    python manage.py migrate
+
 ## API Documentation
 You can head over to [my documentation on POSTMAN](https://documenter.getpostman.com/view/8627195/TVKHUFHe) to view the documentation for the endpoints.
